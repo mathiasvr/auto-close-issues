@@ -10,6 +10,7 @@ inputs:
   github-token:
     description: The `GITHUB_TOKEN` secret.
     required: true
+    default: ${{ github.token }}
   issue-close-message:
     description: Use default message or input field.
     required: false
