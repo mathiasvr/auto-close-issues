@@ -52,22 +52,18 @@ const getIssueCloseMessage = () => {
   const { issue } = github.context;
   const closedIssueLabel = core.getInput("closed-issues-label");
 
-  if (doesIssueMatchAnyTemplate || payload.action !== "opened") {
-    // Only reopen the issue if there's a `closed-issues-label` so it knows that
-    // it was previously closed because of the wrong template
-    if (payload.issue.state === "closed" && closedIssueLabel) {
-      const labels = (
-        await client.issues.listLabelsOnIssue({
-          owner: issue.owner,
-          repo: issue.repo,
-          issue_number: issue.number
-        })
-      ).data.map(({ name }) => name);
+  // Only reopen the issue if there's a `closed-issues-label` so it knows that
+  // it was previously closed because of the wrong template
+  if (payload.issue.state === "closed" && doesIssueMatchAnyTemplate && closedIssueLabel) {
+    const labels = await client.issues.listLabelsOnIssue({
+      owner: issue.owner,
+      repo: issue.repo,
+      issue_number: issue.number
+    })
 
-      if (!labels.includes(closedIssueLabel)) {
-        return;
-      }
+    const labelNames = labels.data.map(({ name }) => name);
 
+    if (labelNames.includes(closedIssueLabel)) {
       await client.issues.removeLabel({
         owner: issue.owner,
         repo: issue.repo,
@@ -81,36 +77,34 @@ const getIssueCloseMessage = () => {
         issue_number: issue.number,
         state: "open"
       });
-
-      return;
     }
-
-    return;
   }
 
-  // If an closed issue label was provided, add it to the issue
-  if (closedIssueLabel) {
-    await client.issues.addLabels({
+  if (payload.issue.state === "open" && !doesIssueMatchAnyTemplate) {
+    // If an closed issue label was provided, add it to the issue
+    if (closedIssueLabel) {
+      await client.issues.addLabels({
+        owner: issue.owner,
+        repo: issue.repo,
+        issue_number: issue.number,
+        labels: [closedIssueLabel]
+      });
+    }
+
+    // Add the issue closing comment
+    await client.issues.createComment({
       owner: issue.owner,
       repo: issue.repo,
       issue_number: issue.number,
-      labels: [closedIssueLabel]
+      body: getIssueCloseMessage()
+    });
+
+    // Close the issue
+    await client.issues.update({
+      owner: issue.owner,
+      repo: issue.repo,
+      issue_number: issue.number,
+      state: "closed"
     });
   }
-
-  // Add the issue closing comment
-  await client.issues.createComment({
-    owner: issue.owner,
-    repo: issue.repo,
-    issue_number: issue.number,
-    body: getIssueCloseMessage()
-  });
-
-  // Close the issue
-  await client.issues.update({
-    owner: issue.owner,
-    repo: issue.repo,
-    issue_number: issue.number,
-    state: "closed"
-  });
 })();
