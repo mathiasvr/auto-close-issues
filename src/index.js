@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const core = require("@actions/core");
 const github = require("@actions/github");
 const mdjson = require("mdjson");
@@ -33,7 +34,9 @@ const getIssueCloseMessage = () => {
   const issueBodyTitles = Object.keys(mdjson(issueBodyMarkdown));
 
   // Get a list of the templates
-  const issueTemplates = fs.readdirSync(ISSUE_TEMPLATE_DIR);
+  const issueTemplates = fs
+    .readdirSync(ISSUE_TEMPLATE_DIR)
+    .filter(p => path.extname(p) === '.md')
 
   // Compare template titles with issue body
   const doesIssueMatchAnyTemplate = issueTemplates.some(template => {
