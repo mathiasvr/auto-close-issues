@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "@actions/core": "^1.2.0",
-    "@actions/github": "^2.0.0",
+    "@actions/github": "^5.0.0",
     "mdjson": "^2.0.1"
   },
   "devDependencies": {
-    "@zeit/ncc": "^0.21.0"
+    "@vercel/ncc": "^0.33.1"
   },
   "homepage": "https://github.com/lucasbento/auto-close-issues",
   "keywords": [

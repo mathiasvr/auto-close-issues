@@ -20,9 +20,11 @@ const getIssueCloseMessage = () => {
 };
 
 (async () => {
-  const client = new github.GitHub(
+  const octokit = github.getOctokit(
     core.getInput("github-token", { required: true })
   );
+
+  const client = octokit.rest;
 
   const { payload } = github.context;
 
